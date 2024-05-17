@@ -75,6 +75,7 @@ dependencies {
 
     // Glide
     implementation ("com.github.bumptech.glide:glide:4.16.0")
+    implementation ("com.github.skydoves:landscapist-glide:2.3.3")
 
     // Retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
@@ -86,5 +87,6 @@ dependencies {
     // Dagger Hilt
     implementation ("com.google.dagger:hilt-android:2.51")
     kapt ("com.google.dagger:hilt-android-compiler:2.51")
+    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
 
 }
