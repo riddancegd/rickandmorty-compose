@@ -48,16 +48,23 @@ fun CharacterListScreen(
     characters: List<Character>? = null,
     viewModel: CharacterViewModel = hiltViewModel()
 ) {
-    val characterList = characters ?: viewModel.characters.collectAsState().value
+    val characterList by viewModel.characters.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    val displayedCharacters = characters ?: characterList
 
     LazyColumn(
         contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
     ) {
-        item {
-            Header()
-        }
-        items(items = characterList ?: emptyList()) { character ->
-            CharacterListItem(character)
+        item { Header() }
+        if (isLoading && displayedCharacters == null) {
+            items(5) { // Show 5 shimmer items for loading effect
+                ShimmerCharacterListItem()
+            }
+        } else {
+            items(items = displayedCharacters ?: emptyList()) { character ->
+                CharacterListItem(character)
+            }
         }
     }
 }
@@ -131,6 +138,7 @@ fun DetailText(label: String, value: String) {
         )
     }
 }
+
 
 // Preview Composable
 @Preview(showBackground = true)
