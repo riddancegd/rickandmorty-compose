@@ -3,10 +3,12 @@ package com.example.rickandmorty_compose.presentation.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -36,34 +38,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.rickandmorty_compose.R
 import com.example.rickandmorty_compose.data.model.Character
 import com.example.rickandmorty_compose.presentation.preview.PreviewUtils.sampleCharacterData
-import com.example.rickandmorty_compose.presentation.viewmodel.CharacterViewModel
 import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
-fun CharacterListScreen(
-    characters: List<Character>? = null,
-    viewModel: CharacterViewModel = hiltViewModel()
-) {
-    val characterList by viewModel.characters.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-
-    val displayedCharacters = characters ?: characterList
-
-    LazyColumn(
-        contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
-    ) {
-        item { Header() }
-        if (isLoading && displayedCharacters == null) {
-            items(5) { // Show 5 shimmer items for loading effect
-                ShimmerCharacterListItem()
+fun CharacterListScreen(uiState: UiState<List<Character>>) {
+    when (uiState) {
+        is UiState.Loading -> {
+            LazyColumn(
+                contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
+            ) {
+                item { Header() }
+                items(7) {
+                    ShimmerCharacterListItem()
+                }
             }
-        } else {
-            items(items = displayedCharacters ?: emptyList()) { character ->
-                CharacterListItem(character)
+        }
+        is UiState.Success -> {
+            val characterList = uiState.data
+            LazyColumn(
+                contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
+            ) {
+                item { Header() }
+                items(items = characterList) { character ->
+                    CharacterListItem(character)
+                }
+            }
+        }
+        is UiState.Error -> {
+            val message = uiState.message
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = message, color = Color.Red, style = MaterialTheme.typography.headlineSmall)
             }
         }
     }
@@ -145,5 +152,5 @@ fun DetailText(label: String, value: String) {
 @Composable
 fun CharacterListScreenPreview() {
     // Using sample data for the preview
-    CharacterListScreen(characters = sampleCharacterData())
+    CharacterListScreen(uiState = UiState.Success(sampleCharacterData()))
 }
