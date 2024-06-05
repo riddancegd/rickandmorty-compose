@@ -8,13 +8,21 @@ import javax.inject.Inject
 
 class CharacterRepository @Inject constructor(private val api: RickAndMortyApi) {
 
-    suspend fun getCharacters(page: Int): List<Character>? {
-        // Ensure you call the correct functions on the Response object
-        val response: Response<CharacterResponse> = api.getCharacters(page)
-        return if (response.isSuccessful) {
-            response.body()?.results
-        } else {
-            null // Consider logging or handling the error case here
+    suspend fun getCharacters(page: Int): Result<List<Character>> {
+        return try {
+            val response: Response<CharacterResponse> = api.getCharacters(page)
+            if (response.isSuccessful) {
+                val characters = response.body()?.results
+                if (characters != null) {
+                    Result.success(characters)
+                } else {
+                    Result.failure(Exception("No characters found"))
+                }
+            } else {
+                Result.failure(Exception("Error ${response.code()}: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

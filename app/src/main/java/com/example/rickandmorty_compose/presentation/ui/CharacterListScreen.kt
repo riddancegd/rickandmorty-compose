@@ -45,32 +45,36 @@ import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun CharacterListScreen(uiState: UiState<List<Character>>) {
-    when (uiState) {
-        is UiState.Loading -> {
-            LazyColumn(
-                contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
-            ) {
-                item { Header() }
+    LazyColumn(
+        contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
+    ) {
+        item { Header() }
+
+        when (uiState) {
+            is UiState.Loading -> {
                 items(7) {
                     ShimmerCharacterListItem()
                 }
             }
-        }
-        is UiState.Success -> {
-            val characterList = uiState.data
-            LazyColumn(
-                contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
-            ) {
-                item { Header() }
+            is UiState.Success -> {
+                val characterList = uiState.data
                 items(items = characterList) { character ->
                     CharacterListItem(character)
                 }
             }
-        }
-        is UiState.Error -> {
-            val message = uiState.message
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = message, color = Color.Red, style = MaterialTheme.typography.headlineSmall)
+            is UiState.Error -> {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = uiState.message,
+                            color = Color.Red,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                }
             }
         }
     }
@@ -153,4 +157,11 @@ fun DetailText(label: String, value: String) {
 fun CharacterListScreenPreview() {
     // Using sample data for the preview
     CharacterListScreen(uiState = UiState.Success(sampleCharacterData()))
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CharacterListScreenPreviewError() {
+    // Using sample data for the preview
+    CharacterListScreen(uiState = UiState.Error("No Internet Connection"))
 }
