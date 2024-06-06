@@ -22,11 +22,14 @@ class CharacterViewModel @Inject constructor(
     private val _characters = MutableStateFlow<UiState<List<Character>>>(UiState.Loading)
     val characters: StateFlow<UiState<List<Character>>> = _characters
 
+    // State to track refresh status
+    var isRefreshing = MutableStateFlow(false)
+
     init {
         fetchCharacters(1)
     }
 
-    private fun fetchCharacters(page: Int) {
+    fun fetchCharacters(page: Int) {
         viewModelScope.launch {
             if (!NetworkUtils.isInternetAvailable(getApplication<Application>())) {
                 _characters.value = UiState.Error("No internet connection")
@@ -45,6 +48,33 @@ class CharacterViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 _characters.value = UiState.Error("Error: ${e.message}")
+            }
+        }
+    }
+
+    fun refreshCharacters(page: Int) {
+        viewModelScope.launch {
+            isRefreshing.value = true
+            if (!NetworkUtils.isInternetAvailable(getApplication<Application>())) {
+                _characters.value = UiState.Error("No internet connection")
+                isRefreshing.value = false
+                return@launch
+            }
+
+            try {
+                val result = repository.getCharacters(page)
+                result.fold(
+                    onSuccess = { characters ->
+                        _characters.value = UiState.Success(characters)
+                    },
+                    onFailure = { exception ->
+                        _characters.value = UiState.Error("Error: ${exception.message}")
+                    }
+                )
+            } catch (e: Exception) {
+                _characters.value = UiState.Error("Error: ${e.message}")
+            } finally {
+                isRefreshing.value = false
             }
         }
     }

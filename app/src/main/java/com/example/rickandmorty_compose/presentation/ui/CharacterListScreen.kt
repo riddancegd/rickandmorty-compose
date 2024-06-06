@@ -17,6 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -43,40 +47,55 @@ import com.example.rickandmorty_compose.data.model.Character
 import com.example.rickandmorty_compose.presentation.preview.PreviewUtils.sampleCharacterData
 import com.skydoves.landscapist.glide.GlideImage
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun CharacterListScreen(uiState: UiState<List<Character>>) {
-    LazyColumn(
-        contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
-    ) {
-        item { Header() }
+fun CharacterListScreen(uiState: UiState<List<Character>>, isRefreshing: Boolean, onRefresh: () -> Unit) {
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = onRefresh
+    )
 
-        when (uiState) {
-            is UiState.Loading -> {
-                items(7) {
-                    ShimmerCharacterListItem()
+    Box() {
+        LazyColumn(
+            contentPadding = PaddingValues(vertical = 24.dp, horizontal = 20.dp),
+            modifier = Modifier.pullRefresh(pullRefreshState)
+        ) {
+            item { Header() }
+
+            when (uiState) {
+                is UiState.Loading -> {
+                    items(7) {
+                        ShimmerCharacterListItem()
+                    }
                 }
-            }
-            is UiState.Success -> {
-                val characterList = uiState.data
-                items(items = characterList) { character ->
-                    CharacterListItem(character)
+                is UiState.Success -> {
+                    val characterList = uiState.data
+                    items(items = characterList) { character ->
+                        CharacterListItem(character)
+                    }
                 }
-            }
-            is UiState.Error -> {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = uiState.message,
-                            color = Color.Red,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                is UiState.Error -> {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = uiState.message,
+                                color = Color.Red,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
                     }
                 }
             }
         }
+
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
 
@@ -156,12 +175,20 @@ fun DetailText(label: String, value: String) {
 @Composable
 fun CharacterListScreenPreview() {
     // Using sample data for the preview
-    CharacterListScreen(uiState = UiState.Success(sampleCharacterData()))
+    CharacterListScreen(
+        uiState = UiState.Success(sampleCharacterData()),
+        isRefreshing = false,
+        onRefresh = {}
+    )
 }
 
 @Preview(showBackground = true)
 @Composable
 fun CharacterListScreenPreviewError() {
     // Using sample data for the preview
-    CharacterListScreen(uiState = UiState.Error("No Internet Connection"))
+    CharacterListScreen(
+        uiState = UiState.Error("Error loading characters"),
+        isRefreshing = false,
+        onRefresh = {}
+    )
 }

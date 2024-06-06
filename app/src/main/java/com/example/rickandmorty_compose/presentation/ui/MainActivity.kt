@@ -12,13 +12,20 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val viewModel: CharacterViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val viewModel: CharacterViewModel = hiltViewModel()
             val uiState by viewModel.characters.collectAsState()
+            val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-            CharacterListScreen(uiState = uiState)
+            CharacterListScreen(
+                uiState = uiState,
+                isRefreshing = isRefreshing,
+                onRefresh = { viewModel.refreshCharacters(1) }
+            )
         }
     }
 }
