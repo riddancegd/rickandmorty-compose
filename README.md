@@ -25,7 +25,7 @@ __[follow me](https://github.com/riddancegd)__ on GitHub for more cool projects!
 
 # License
 ```xml
-Designed and developed by 2024 skydoves (Jaewoong Eum)
+Designed and developed by 2024 riddancegd (Jhibram Farid)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
